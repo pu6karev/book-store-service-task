@@ -1,5 +1,22 @@
 package com.epam.rd.autocode.spring.project.model;
 
+import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+
+@Getter
+@Setter
+@MappedSuperclass
+@NoArgsConstructor
+@AllArgsConstructor
 public class User {
-    // TODO Place your code here
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+    private String name;
+    private String email;
+    private String password;
 }

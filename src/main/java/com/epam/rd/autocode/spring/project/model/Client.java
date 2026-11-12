@@ -1,5 +1,23 @@
 package com.epam.rd.autocode.spring.project.model;
 
-public class Client {
-    // TODO Place your code here
+import jakarta.persistence.Entity;
+import jakarta.persistence.Table;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+import java.math.BigDecimal;
+
+@Getter
+@Setter
+@Entity
+@Table(name = "clients")
+@NoArgsConstructor
+public class Client extends User{
+    public Client(Long id, String name, String email, String password, BigDecimal balance) {
+        super(id, name, email, password);
+        this.balance = balance;
+    }
+
+    private BigDecimal balance;
 }
