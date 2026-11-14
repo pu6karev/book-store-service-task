@@ -1,6 +1,7 @@
 package com.epam.rd.autocode.spring.project.service.impl;
 
 import com.epam.rd.autocode.spring.project.dto.ClientDTO;
+import com.epam.rd.autocode.spring.project.dto.ProfileDTO;
 import com.epam.rd.autocode.spring.project.exception.AlreadyExistException;
 import com.epam.rd.autocode.spring.project.exception.NotFoundException;
 import com.epam.rd.autocode.spring.project.model.Client;
@@ -76,6 +77,15 @@ public class ClientServiceImpl implements ClientService {
 
         Client savedClient = clientRepository.save(clientEntity);
         return convertClientToClientDTO(savedClient);
+    }
+
+    @Override
+    @Transactional
+    public void updateProfile(String email, ProfileDTO profile) {
+        Client client = clientRepository.findByEmail(email)
+                .orElseThrow(() -> new NotFoundException("The client with email: " + email + " not found"));
+        client.setName(profile.getName());
+        clientRepository.save(client);
     }
 
     private ClientDTO convertClientToClientDTO(Client client) {

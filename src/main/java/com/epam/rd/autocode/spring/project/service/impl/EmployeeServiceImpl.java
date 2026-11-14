@@ -1,6 +1,7 @@
 package com.epam.rd.autocode.spring.project.service.impl;
 
 import com.epam.rd.autocode.spring.project.dto.EmployeeDTO;
+import com.epam.rd.autocode.spring.project.dto.ProfileDTO;
 import com.epam.rd.autocode.spring.project.exception.AlreadyExistException;
 import com.epam.rd.autocode.spring.project.exception.NotFoundException;
 import com.epam.rd.autocode.spring.project.model.Employee;
@@ -76,6 +77,17 @@ public class EmployeeServiceImpl implements EmployeeService {
 
         Employee savedEmployee = employeeRepository.save(employeeEntity);
         return convertEmployeeToEmployeeDTO(savedEmployee);
+    }
+
+    @Override
+    @Transactional
+    public void updateProfile(String email, ProfileDTO profile) {
+        Employee employee = employeeRepository.findByEmail(email)
+                .orElseThrow(() -> new NotFoundException("The employee with email: " + email + " not found"));
+        employee.setName(profile.getName());
+        employee.setPhone(profile.getPhone());
+        employee.setBirthDate(profile.getBirthDate());
+        employeeRepository.save(employee);
     }
 
     private EmployeeDTO convertEmployeeToEmployeeDTO(Employee employee) {
