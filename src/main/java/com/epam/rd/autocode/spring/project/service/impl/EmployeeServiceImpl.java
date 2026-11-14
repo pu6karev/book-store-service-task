@@ -4,6 +4,7 @@ import com.epam.rd.autocode.spring.project.dto.EmployeeDTO;
 import com.epam.rd.autocode.spring.project.exception.AlreadyExistException;
 import com.epam.rd.autocode.spring.project.exception.NotFoundException;
 import com.epam.rd.autocode.spring.project.model.Employee;
+import com.epam.rd.autocode.spring.project.repo.ClientRepository;
 import com.epam.rd.autocode.spring.project.repo.EmployeeRepository;
 import com.epam.rd.autocode.spring.project.service.EmployeeService;
 import lombok.RequiredArgsConstructor;
@@ -19,6 +20,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class EmployeeServiceImpl implements EmployeeService {
     private final EmployeeRepository employeeRepository;
+    private final ClientRepository clientRepository;
     private final ModelMapper mapper;
     private final PasswordEncoder passwordEncoder;
 
@@ -64,8 +66,9 @@ public class EmployeeServiceImpl implements EmployeeService {
     @Override
     @Transactional
     public EmployeeDTO addEmployee(EmployeeDTO employeeDTO) {
-        if (employeeRepository.existsByEmail(employeeDTO.getEmail())) {
-            throw new AlreadyExistException("The employee with email: " + employeeDTO.getEmail() + " already exists");
+        if (employeeRepository.existsByEmail(employeeDTO.getEmail())
+            || clientRepository.existsByEmail(employeeDTO.getEmail())) {
+            throw new AlreadyExistException("The user with email: " + employeeDTO.getEmail() + " already exists");
         }
 
         Employee employeeEntity = convertEmployeeDTOToEmployee(employeeDTO);

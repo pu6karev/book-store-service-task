@@ -1,5 +1,7 @@
 package com.epam.rd.autocode.spring.project.dto;
 
+import com.epam.rd.autocode.spring.project.validation.StrongPassword;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -21,7 +23,8 @@ public class EmployeeDTO{
     private String email;
 
     @NotBlank(message = "Password must not be blank")
-    @Size(min = 6, message = "Password must be at least 6 characters")
+    @StrongPassword
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     private String password;
 
     @NotBlank(message = "Phone number must not be blank")

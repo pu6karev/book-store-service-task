@@ -5,6 +5,7 @@ import com.epam.rd.autocode.spring.project.exception.AlreadyExistException;
 import com.epam.rd.autocode.spring.project.exception.NotFoundException;
 import com.epam.rd.autocode.spring.project.model.Client;
 import com.epam.rd.autocode.spring.project.repo.ClientRepository;
+import com.epam.rd.autocode.spring.project.repo.EmployeeRepository;
 import com.epam.rd.autocode.spring.project.service.ClientService;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
@@ -19,6 +20,7 @@ import java.util.List;
 @Transactional(readOnly = true)
 public class ClientServiceImpl implements ClientService {
     private final ClientRepository clientRepository;
+    private final EmployeeRepository employeeRepository;
     private final ModelMapper mapper;
     private final PasswordEncoder passwordEncoder;
 
@@ -64,8 +66,9 @@ public class ClientServiceImpl implements ClientService {
     @Override
     @Transactional
     public ClientDTO addClient(ClientDTO clientDTO) {
-        if (clientRepository.existsByEmail(clientDTO.getEmail())) {
-            throw new AlreadyExistException("The client with email: " + clientDTO.getEmail() + " already exists");
+        if (clientRepository.existsByEmail(clientDTO.getEmail())
+            || employeeRepository.existsByEmail(clientDTO.getEmail())) {
+            throw new AlreadyExistException("The user with email: " + clientDTO.getEmail() + " already exists");
         }
 
         Client clientEntity = convertClientDTOToClient(clientDTO);

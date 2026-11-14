@@ -22,11 +22,18 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/login", "/register", "/error", "/css/**", "/js/**").permitAll()
                         .requestMatchers("/api/clients/**", "/api/employees/**").hasRole("EMPLOYEE")
                         .requestMatchers(HttpMethod.GET, "/api/books/**").authenticated()
                         .requestMatchers("/api/books/**").hasRole("EMPLOYEE")
                         .anyRequest().authenticated())
-                .formLogin(Customizer.withDefaults())
+                .formLogin(form -> form
+                        .loginPage("/login")
+                        .defaultSuccessUrl("/books")
+                        .permitAll())
+                .logout(logout -> logout
+                        .logoutSuccessUrl("/login?logout")
+                        .permitAll())
                 .httpBasic(Customizer.withDefaults())
                 .csrf(csrf -> csrf.ignoringRequestMatchers("/api/**"));
         return http.build();
