@@ -8,6 +8,7 @@ import com.epam.rd.autocode.spring.project.repo.ClientRepository;
 import com.epam.rd.autocode.spring.project.service.ClientService;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,6 +20,7 @@ import java.util.List;
 public class ClientServiceImpl implements ClientService {
     private final ClientRepository clientRepository;
     private final ModelMapper mapper;
+    private final PasswordEncoder passwordEncoder;
 
     @Override
     public List<ClientDTO> getAllClients() {
@@ -42,6 +44,7 @@ public class ClientServiceImpl implements ClientService {
                 .orElseThrow(() -> new NotFoundException("The client with email: " + email + " not found"));
 
         mapper.map(clientDTO, existingClient);
+        existingClient.setPassword(passwordEncoder.encode(clientDTO.getPassword()));
 
         Client savedClient = clientRepository.save(existingClient);
 
@@ -65,7 +68,10 @@ public class ClientServiceImpl implements ClientService {
             throw new AlreadyExistException("The client with email: " + clientDTO.getEmail() + " already exists");
         }
 
-        Client savedClient = clientRepository.save( convertClientDTOToClient(clientDTO) );
+        Client clientEntity = convertClientDTOToClient(clientDTO);
+        clientEntity.setPassword(passwordEncoder.encode(clientDTO.getPassword()));
+
+        Client savedClient = clientRepository.save(clientEntity);
         return convertClientToClientDTO(savedClient);
     }
 

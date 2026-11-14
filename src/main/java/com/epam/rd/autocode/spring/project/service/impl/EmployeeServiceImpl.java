@@ -8,6 +8,7 @@ import com.epam.rd.autocode.spring.project.repo.EmployeeRepository;
 import com.epam.rd.autocode.spring.project.service.EmployeeService;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,6 +20,7 @@ import java.util.List;
 public class EmployeeServiceImpl implements EmployeeService {
     private final EmployeeRepository employeeRepository;
     private final ModelMapper mapper;
+    private final PasswordEncoder passwordEncoder;
 
     @Override
     public List<EmployeeDTO> getAllEmployees() {
@@ -42,6 +44,7 @@ public class EmployeeServiceImpl implements EmployeeService {
                 .orElseThrow(() -> new NotFoundException("The employee with email: " + email + " not found"));
 
         mapper.map(employeeDTO, existingEmployee);
+        existingEmployee.setPassword(passwordEncoder.encode(employeeDTO.getPassword()));
 
         Employee savedEmployee = employeeRepository.save(existingEmployee);
 
@@ -65,7 +68,10 @@ public class EmployeeServiceImpl implements EmployeeService {
             throw new AlreadyExistException("The employee with email: " + employeeDTO.getEmail() + " already exists");
         }
 
-        Employee savedEmployee = employeeRepository.save(convertEmployeeDTOToEmployee(employeeDTO));
+        Employee employeeEntity = convertEmployeeDTOToEmployee(employeeDTO);
+        employeeEntity.setPassword(passwordEncoder.encode(employeeDTO.getPassword()));
+
+        Employee savedEmployee = employeeRepository.save(employeeEntity);
         return convertEmployeeToEmployeeDTO(savedEmployee);
     }
 

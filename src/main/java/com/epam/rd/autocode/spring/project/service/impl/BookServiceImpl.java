@@ -8,6 +8,8 @@ import com.epam.rd.autocode.spring.project.repo.BookRepository;
 import com.epam.rd.autocode.spring.project.service.BookService;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -68,6 +70,10 @@ public class BookServiceImpl implements BookService {
 
         Book savedBook = bookRepository.save(convertBookDTOToBook(bookDTO));
         return convertBookToBookDTO(savedBook);
+    }
+
+    public Page<BookDTO> searchBooks(String q, Pageable pageable) {
+        return bookRepository.search(q, pageable).map(this::convertBookToBookDTO);
     }
 
     private BookDTO convertBookToBookDTO(Book book) {
