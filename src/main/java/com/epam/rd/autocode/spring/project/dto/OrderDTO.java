@@ -1,5 +1,6 @@
 package com.epam.rd.autocode.spring.project.dto;
 
+import com.epam.rd.autocode.spring.project.validation.ValidEmail;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
@@ -18,10 +19,10 @@ import java.util.List;
 @AllArgsConstructor
 public class OrderDTO{
     @NotBlank(message = "Client email must not be blank")
-    @Email(message = "Invalid client email format")
+    @ValidEmail
     private String clientEmail;
 
-    @Email(message = "Invalid employee email format")
+    @ValidEmail
     private String employeeEmail;
 
     @PastOrPresent(message = "Order date cannot be in the future")

@@ -8,4 +8,6 @@ import java.util.List;
 public interface OrderRepository extends JpaRepository<Order, Long> {
     List<Order> findAllByClientEmail(String email);
     List<Order> findAllByEmployeeEmail(String email);
+    // path: Order.bookItems -> BookItem.book -> Book.name
+    boolean existsByBookItemsBookName(String bookName);
 }

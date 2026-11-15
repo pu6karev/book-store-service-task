@@ -1,7 +1,7 @@
 package com.epam.rd.autocode.spring.project.dto;
 
 import com.epam.rd.autocode.spring.project.validation.StrongPassword;
-import jakarta.validation.constraints.Email;
+import com.epam.rd.autocode.spring.project.validation.ValidEmail;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -17,7 +17,7 @@ public class ClientRegistrationDTO {
     private String name;
 
     @NotBlank(message = "{validation.email.notblank}")
-    @Email(message = "{validation.email.invalid}")
+    @ValidEmail(message = "{validation.email.invalid}")
     private String email;
 
     @NotBlank(message = "{validation.password.notblank}")

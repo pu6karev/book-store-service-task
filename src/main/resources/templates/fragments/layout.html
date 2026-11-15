@@ -19,12 +19,28 @@
         </li>
     </ul>
     <div class="ms-auto d-flex align-items-center gap-3 text-white">
-        <span><a class="text-white" href="?lang=en">EN</a> | <a class="text-white" href="?lang=uk">UK</a></span>
+        <span>
+            <a class="text-white" href="#" onclick="switchLang('en'); return false;">EN</a> |
+            <a class="text-white" href="#" onclick="switchLang('uk'); return false;">UK</a>
+        </span>
         <span sec:authorize="isAuthenticated()" sec:authentication="name"></span>
         <form sec:authorize="isAuthenticated()" th:action="@{/logout}" method="post" class="m-0">
             <button class="btn btn-outline-light btn-sm" type="submit" th:text="#{nav.logout}">Log out</button>
         </form>
     </div>
+    <script>
+        // keeps the other query parameters (name, q, sort, page...) when the language is switched
+        function switchLang(lang) {
+            const url = new URL(window.location.href);
+            url.searchParams.set('lang', lang);
+            window.location.href = url.toString();
+        }
+    </script>
 </nav>
+
+<div th:fragment="flash">
+    <div class="alert alert-success" th:if="${flashSuccess}" th:text="#{${flashSuccess}}"></div>
+    <div class="alert alert-danger" th:if="${flashError}" th:text="#{${flashError}}"></div>
+</div>
 </body>
 </html>

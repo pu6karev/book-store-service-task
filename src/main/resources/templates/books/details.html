@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/layout :: head(${book.name})}"></head>
+<body>
+<div th:replace="~{fragments/layout :: navbar}"></div>
+<div class="container mt-4" style="max-width: 700px;">
+    <div th:replace="~{fragments/layout :: flash}"></div>
+    <h1 class="h3 mb-3" th:text="${book.name}">Title</h1>
+
+    <dl class="row">
+        <dt class="col-sm-4" th:text="#{book.author}">Author</dt>
+        <dd class="col-sm-8" th:text="${book.author}"></dd>
+        <dt class="col-sm-4" th:text="#{book.genre}">Genre</dt>
+        <dd class="col-sm-8" th:text="${book.genre}"></dd>
+        <dt class="col-sm-4" th:text="#{book.agegroup}">Age group</dt>
+        <dd class="col-sm-8" th:text="${book.ageGroup}"></dd>
+        <dt class="col-sm-4" th:text="#{book.language}">Language</dt>
+        <dd class="col-sm-8" th:text="${book.language}"></dd>
+        <dt class="col-sm-4" th:text="#{book.publication}">Publication date</dt>
+        <dd class="col-sm-8" th:text="${#temporals.format(book.publicationDate, 'dd.MM.yyyy')}"></dd>
+        <dt class="col-sm-4" th:text="#{book.pages}">Pages</dt>
+        <dd class="col-sm-8" th:text="${book.pages}"></dd>
+        <dt class="col-sm-4" th:text="#{book.price}">Price</dt>
+        <dd class="col-sm-8" th:text="${#numbers.formatDecimal(book.price, 1, 2)}"></dd>
+        <dt class="col-sm-4" th:text="#{book.characteristics}">Characteristics</dt>
+        <dd class="col-sm-8" th:text="${book.characteristics}"></dd>
+        <dt class="col-sm-4" th:text="#{book.description}">Description</dt>
+        <dd class="col-sm-8" th:text="${book.description}"></dd>
+    </dl>
+
+    <div class="d-flex gap-2">
+        <a class="btn btn-outline-secondary" th:href="@{/books}" th:text="#{books.back}">Back to list</a>
+        <th:block sec:authorize="hasRole('EMPLOYEE')">
+            <a class="btn btn-primary" th:href="@{/books/edit(name=${book.name})}" th:text="#{books.edit}">Edit</a>
+            <form th:action="@{/books/delete}" method="post" class="m-0"
+                  th:data-confirm="#{books.delete.confirm}"
+                  onsubmit="return confirm(this.dataset.confirm);">
+                <input type="hidden" name="name" th:value="${book.name}">
+                <button class="btn btn-danger" type="submit" th:text="#{books.delete}">Delete</button>
+            </form>
+        </th:block>
+    </div>
+</div>
+</body>
+</html>

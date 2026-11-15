@@ -1,6 +1,7 @@
 package com.epam.rd.autocode.spring.project.dto;
 
 import com.epam.rd.autocode.spring.project.validation.StrongPassword;
+import com.epam.rd.autocode.spring.project.validation.ValidEmail;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
@@ -19,7 +20,7 @@ public class EmployeeDTO{
     private String name;
 
     @NotBlank(message = "Email must not be blank")
-    @Email(message = "Invalid email format")
+    @ValidEmail
     private String email;
 
     @NotBlank(message = "Password must not be blank")

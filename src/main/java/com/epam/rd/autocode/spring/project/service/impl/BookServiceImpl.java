@@ -2,9 +2,11 @@ package com.epam.rd.autocode.spring.project.service.impl;
 
 import com.epam.rd.autocode.spring.project.dto.BookDTO;
 import com.epam.rd.autocode.spring.project.exception.AlreadyExistException;
+import com.epam.rd.autocode.spring.project.exception.BookInUseException;
 import com.epam.rd.autocode.spring.project.exception.NotFoundException;
 import com.epam.rd.autocode.spring.project.model.Book;
 import com.epam.rd.autocode.spring.project.repo.BookRepository;
+import com.epam.rd.autocode.spring.project.repo.OrderRepository;
 import com.epam.rd.autocode.spring.project.service.BookService;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
@@ -20,6 +22,7 @@ import java.util.List;
 @Transactional(readOnly = true)
 public class BookServiceImpl implements BookService {
     private final BookRepository bookRepository;
+    private final OrderRepository orderRepository;
     private final ModelMapper mapper;
 
     @Override
@@ -37,12 +40,16 @@ public class BookServiceImpl implements BookService {
         return convertBookToBookDTO(book);
     }
 
-
     @Override
     @Transactional
     public BookDTO updateBookByName(String name, BookDTO bookDTO) {
         Book existingBook = bookRepository.findByName(name)
                 .orElseThrow(() -> new NotFoundException("The book " + name + " not found"));
+
+        // the name is the identifier: renaming is allowed only to a free name
+        if (!name.equals(bookDTO.getName()) && bookRepository.existsByName(bookDTO.getName())) {
+            throw new AlreadyExistException("The book with name: " + bookDTO.getName() + " already exists");
+        }
 
         mapper.map(bookDTO, existingBook);
 
@@ -56,6 +63,9 @@ public class BookServiceImpl implements BookService {
     public void deleteBookByName(String name) {
         if(!bookRepository.existsByName(name)) {
             throw new NotFoundException("The book " + name + " not found");
+        }
+        if(orderRepository.existsByBookItemsBookName(name)) {
+           throw new BookInUseException("The book " + name + " cannot be deleted: it is included in orders");
         }
 
         bookRepository.deleteByName(name);
@@ -72,6 +82,7 @@ public class BookServiceImpl implements BookService {
         return convertBookToBookDTO(savedBook);
     }
 
+    @Override
     public Page<BookDTO> searchBooks(String q, Pageable pageable) {
         return bookRepository.search(q, pageable).map(this::convertBookToBookDTO);
     }
