@@ -6,6 +6,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.math.BigDecimal;
+
 @Getter
 @Setter
 @Entity
@@ -26,4 +28,8 @@ public class BookItem {
     private Book book;
 
     private Integer quantity;
+
+    // the price of one copy at the moment of the order (the book's price may change later)
+    @Column(name = "unit_price", nullable = false)
+    private BigDecimal unitPrice;
 }

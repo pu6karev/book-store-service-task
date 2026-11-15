@@ -17,7 +17,7 @@ public class ClientRegistrationDTO {
     private String name;
 
     @NotBlank(message = "{validation.email.notblank}")
-    @ValidEmail(message = "{validation.email.invalid}")
+    @ValidEmail
     private String email;
 
     @NotBlank(message = "{validation.password.notblank}")

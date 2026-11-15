@@ -48,7 +48,7 @@ public class Constants {
 
     static class BookItem {
         public static final String CLASS_NAME = "BookItem";
-        public static final int CLASS_COUNT_FIELDS = 4;
+        public static final int CLASS_COUNT_FIELDS = 5;
         public static final int CLASS_COUNT_CONSTRUCTORS = 2;
         public static final int PARAMETERS_IN_CONSTRUCTOR_WITH_PARAMETERS = CLASS_COUNT_FIELDS;
     }

@@ -87,7 +87,7 @@ public class OrderDTOTest {
                 .findFirst()
                 .orElseThrow(() -> new RuntimeException("No parameter with type " + Constants.LOCAL_DATE_TIME_TYPE));
 
-        assertEquals(5, parameters.size());
+        assertEquals(Constants.OrderDTO.PARAMETERS_IN_CONSTRUCTOR_WITH_PARAMETERS, parameters.size());
     }
 
     @Test
@@ -113,7 +113,8 @@ public class OrderDTOTest {
             "java.lang.String, employeeEmail, 1",
             "java.time.LocalDateTime, orderDate, 1",
             "java.math.BigDecimal, price, 1",
-            "java.util.List, bookItems, 1"
+            "java.util.List, bookItems, 1",
+            "java.lang.Long, id, 1"
     })
     void checkNameFieldType(String fieldType, String fieldName, long expected) {
         var count = allFields.stream()

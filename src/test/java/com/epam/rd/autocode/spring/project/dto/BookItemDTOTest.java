@@ -81,7 +81,7 @@ public class BookItemDTOTest {
                 .findFirst()
                 .orElseThrow(() -> new RuntimeException("No parameter with type " + Constants.INT_TYPE));
 
-        assertEquals(2, parameters.size());
+        assertEquals(Constants.BookItemDTO.PARAMETERS_IN_CONSTRUCTOR_WITH_PARAMETERS, parameters.size());
     }
 
     @Test
@@ -104,7 +104,8 @@ public class BookItemDTOTest {
     @ParameterizedTest
     @CsvSource({
             "java.lang.String, bookName, 1",
-            "java.lang.Integer, quantity, 1"
+            "java.lang.Integer, quantity, 1",
+            "java.math.BigDecimal, unitPrice, 1"
     })
     void checkNameFieldType(String fieldType, String fieldName, long expected) {
         var count = allFields.stream()

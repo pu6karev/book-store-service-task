@@ -88,7 +88,7 @@ public class BookItemModelTest {
                 .findFirst()
                 .orElseThrow(() -> new RuntimeException("No parameter with type " + Constants.ORDER_TYPE));
 
-        assertEquals(4, parameters.size());
+        assertEquals(Constants.BookItem.PARAMETERS_IN_CONSTRUCTOR_WITH_PARAMETERS, parameters.size());
     }
 
     @Test
@@ -113,7 +113,8 @@ public class BookItemModelTest {
             "java.lang.Long, id, 1",
             "java.lang.Integer, quantity, 1",
             "com.epam.rd.autocode.spring.project.model.Book, book, 1",
-            "com.epam.rd.autocode.spring.project.model.Order, order, 1"
+            "com.epam.rd.autocode.spring.project.model.Order, order, 1",
+            "java.math.BigDecimal, unitPrice, 1"
     })
     void checkNameFieldType(String fieldType, String fieldName, long expected) {
         var count = allFields.stream()
