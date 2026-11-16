@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head(#{cart.title})}"></head>
+<body>
+<div th:replace="~{fragments/layout :: navbar}"></div>
+<div class="container mt-4">
+    <div th:replace="~{fragments/layout :: flash}"></div>
+    <h1 class="h3 mb-3" th:text="#{cart.title}">Cart</h1>
+
+    <div th:if="${lines.empty}">
+        <p th:text="#{cart.empty}">Your cart is empty</p>
+        <a class="btn btn-primary" th:href="@{/books}" th:text="#{cart.continue}">Browse books</a>
+    </div>
+
+    <div th:unless="${lines.empty}">
+        <table class="table align-middle">
+            <thead>
+            <tr>
+                <th th:text="#{book.name}">Title</th>
+                <th th:text="#{book.price}">Price</th>
+                <th th:text="#{cart.quantity}">Quantity</th>
+                <th th:text="#{cart.subtotal}">Subtotal</th>
+                <th></th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="line : ${lines}">
+                <td><a th:href="@{/books/view(name=${line.bookName})}" th:text="${line.bookName}"></a></td>
+                <td th:text="${#numbers.formatDecimal(line.unitPrice, 1, 2)}"></td>
+                <td>
+                    <form th:action="@{/cart/update}" method="post" class="d-flex gap-2 m-0">
+                        <input type="hidden" name="name" th:value="${line.bookName}">
+                        <input type="number" name="quantity" class="form-control form-control-sm"
+                               style="width: 5rem;" min="1" max="99" th:value="${line.quantity}">
+                        <button class="btn btn-outline-secondary btn-sm" type="submit" th:text="#{cart.update}">Update</button>
+                    </form>
+                </td>
+                <td th:text="${#numbers.formatDecimal(line.unitPrice * line.quantity, 1, 2)}"></td>
+                <td>
+                    <form th:action="@{/cart/remove}" method="post" class="m-0">
+                        <input type="hidden" name="name" th:value="${line.bookName}">
+                        <button class="btn btn-outline-danger btn-sm" type="submit" th:text="#{cart.remove}">Remove</button>
+                    </form>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+
+        <dl class="row" style="max-width: 400px;">
+            <dt class="col-6" th:text="#{cart.total}">Total</dt>
+            <dd class="col-6" th:text="${#numbers.formatDecimal(total, 1, 2)}"></dd>
+            <dt class="col-6" th:text="#{profile.balance}">Balance</dt>
+            <dd class="col-6" th:text="${#numbers.formatDecimal(balance, 1, 2)}"></dd>
+        </dl>
+
+        <div class="alert alert-warning" th:if="${balance.compareTo(total) < 0}" th:text="#{cart.insufficient}"></div>
+
+        <form th:action="@{/cart/checkout}" method="post"
+              onsubmit="this.querySelector('button[type=submit]').disabled = true;">
+            <button class="btn btn-primary" type="submit"
+                    th:disabled="${balance.compareTo(total) < 0}" th:text="#{cart.checkout}">Place order</button>
+        </form>
+    </div>
+</div>
+</body>
+</html>

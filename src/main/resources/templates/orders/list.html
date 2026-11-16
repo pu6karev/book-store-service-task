@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head(#{orders.title})}"></head>
+<body>
+<div th:replace="~{fragments/layout :: navbar}"></div>
+<div class="container mt-4">
+    <div th:replace="~{fragments/layout :: flash}"></div>
+    <h1 class="h3 mb-3" th:text="#{orders.title}">My orders</h1>
+
+    <p th:if="${orders.empty}" th:text="#{orders.empty}">You have no orders yet</p>
+
+    <table class="table align-middle" th:unless="${orders.empty}">
+        <thead>
+        <tr>
+            <th>#</th>
+            <th th:text="#{orders.date}">Date</th>
+            <th th:text="#{orders.status}">Status</th>
+            <th th:text="#{orders.items}">Books</th>
+            <th th:text="#{orders.total}">Total</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="o : ${orders}">
+            <td th:text="${o.id}"></td>
+            <td th:text="${#temporals.format(o.orderDate, 'dd.MM.yyyy HH:mm')}"></td>
+            <td>
+                <span class="badge bg-success" th:if="${o.employeeEmail != null}"
+                      th:text="#{orders.status.confirmed}">Confirmed</span>
+                <span class="badge bg-warning text-dark" th:if="${o.employeeEmail == null}"
+                      th:text="#{orders.status.pending}">Pending</span>
+            </td>
+            <td>
+                <ul class="list-unstyled mb-0">
+                    <li th:each="i : ${o.bookItems}">
+                        <span th:text="${i.bookName}"></span>
+                        × <span th:text="${i.quantity}"></span>
+                        (<span th:text="${#numbers.formatDecimal(i.unitPrice, 1, 2)}"></span>)
+                    </li>
+                </ul>
+            </td>
+            <td th:text="${#numbers.formatDecimal(o.price, 1, 2)}"></td>
+        </tr>
+        </tbody>
+    </table>
+</div>
+</body>
+</html>

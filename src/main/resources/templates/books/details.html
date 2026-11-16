@@ -31,6 +31,10 @@
 
     <div class="d-flex gap-2">
         <a class="btn btn-outline-secondary" th:href="@{/books}" th:text="#{books.back}">Back to list</a>
+        <form sec:authorize="hasRole('CLIENT')" th:action="@{/cart/add}" method="post" class="m-0">
+            <input type="hidden" name="name" th:value="${book.name}">
+            <button class="btn btn-success" type="submit" th:text="#{cart.add}">Add to cart</button>
+        </form>
         <th:block sec:authorize="hasRole('EMPLOYEE')">
             <a class="btn btn-primary" th:href="@{/books/edit(name=${book.name})}" th:text="#{books.edit}">Edit</a>
             <form th:action="@{/books/delete}" method="post" class="m-0"

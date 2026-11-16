@@ -49,6 +49,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/login", "/register", "/error", "/css/**", "/js/**").permitAll()
                         .requestMatchers("/books/add", "/books/edit", "/books/delete").hasRole("EMPLOYEE")
+                        .requestMatchers("/cart/**", "/orders").hasRole("CLIENT")
                         .anyRequest().authenticated())
                 .formLogin(form -> form
                         .loginPage("/login")
