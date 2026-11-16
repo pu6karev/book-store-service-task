@@ -3,10 +3,12 @@ package com.epam.rd.autocode.spring.project.service.impl;
 import com.epam.rd.autocode.spring.project.dto.ClientDTO;
 import com.epam.rd.autocode.spring.project.dto.ProfileDTO;
 import com.epam.rd.autocode.spring.project.exception.AlreadyExistException;
+import com.epam.rd.autocode.spring.project.exception.ClientInUseException;
 import com.epam.rd.autocode.spring.project.exception.NotFoundException;
 import com.epam.rd.autocode.spring.project.model.Client;
 import com.epam.rd.autocode.spring.project.repo.ClientRepository;
 import com.epam.rd.autocode.spring.project.repo.EmployeeRepository;
+import com.epam.rd.autocode.spring.project.repo.OrderRepository;
 import com.epam.rd.autocode.spring.project.service.ClientService;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
@@ -22,6 +24,7 @@ import java.util.List;
 public class ClientServiceImpl implements ClientService {
     private final ClientRepository clientRepository;
     private final EmployeeRepository employeeRepository;
+    private final OrderRepository orderRepository;
     private final ModelMapper mapper;
     private final PasswordEncoder passwordEncoder;
 
@@ -62,6 +65,10 @@ public class ClientServiceImpl implements ClientService {
     public void deleteClientByEmail(String email) {
         if(!clientRepository.existsByEmail(email)) {
             throw new NotFoundException("The client with email: " + email + " not found");
+        }
+        // orders.client_id is NOT NULL: a client with orders cannot be deleted (the order history is kept)
+        if (orderRepository.existsByClientEmail(email)) {
+            throw new ClientInUseException("The client with email: " + email + " has orders and cannot be deleted");
         }
 
         clientRepository.deleteByEmail(email);

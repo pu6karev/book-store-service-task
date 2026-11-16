@@ -2,11 +2,16 @@ package com.epam.rd.autocode.spring.project.controller;
 
 import com.epam.rd.autocode.spring.project.dto.EmployeeDTO;
 import com.epam.rd.autocode.spring.project.dto.ProfileDTO;
+import com.epam.rd.autocode.spring.project.exception.ClientInUseException;
 import com.epam.rd.autocode.spring.project.service.ClientService;
 import com.epam.rd.autocode.spring.project.service.EmployeeService;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -14,11 +19,14 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 @Controller
 @RequestMapping("/profile")
 @RequiredArgsConstructor
 public class ProfileController {
+    private static final String FLASH_ERROR = "flashError";
+
     private final ClientService clientService;
     private final EmployeeService employeeService;
 
@@ -71,6 +79,24 @@ public class ProfileController {
             clientService.updateProfile(authentication.getName(), form);
         }
         return "redirect:/profile?updated";
+    }
+
+    @PostMapping("/delete")
+    @PreAuthorize("hasRole('CLIENT')")
+    public String delete(Authentication authentication,
+                         HttpServletRequest request,
+                         HttpServletResponse response,
+                         RedirectAttributes redirectAttributes) {
+        try {
+            // only the own account: the email is taken from the authentication
+            clientService.deleteClientByEmail(authentication.getName());
+        } catch (ClientInUseException ex) {
+            redirectAttributes.addFlashAttribute(FLASH_ERROR, "profile.delete.error.orders");
+            return "redirect:/profile";
+        }
+        // ends the session together with the cart; that is why the message goes in the query string, not in a flash
+        new SecurityContextLogoutHandler().logout(request, response, authentication);
+        return "redirect:/login?deleted";
     }
 
     private boolean isEmployee(Authentication authentication) {

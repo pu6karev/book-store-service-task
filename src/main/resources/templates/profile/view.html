@@ -1,5 +1,6 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head th:replace="~{fragments/layout :: head(#{nav.profile})}"></head>
 <body>
 <div th:replace="~{fragments/layout :: navbar}"></div>
@@ -7,6 +8,7 @@
     <h1 class="h3 mb-3"
         th:text="${client != null} ? #{profile.title.client} : #{profile.title.employee}">My profile</h1>
     <div class="alert alert-success" th:if="${param.updated}" th:text="#{profile.updated}"></div>
+    <div th:replace="~{fragments/layout :: flash}"></div>
 
     <dl class="row" th:if="${client != null}">
         <dt class="col-sm-4" th:text="#{profile.name}">Name</dt>
@@ -28,7 +30,14 @@
         <dd class="col-sm-8" th:text="${#temporals.format(employee.birthDate, 'dd.MM.yyyy')}"></dd>
     </dl>
 
-    <a class="btn btn-primary" th:href="@{/profile/edit}" th:text="#{profile.edit}">Edit profile</a>
+    <div class="d-flex gap-2">
+        <a class="btn btn-primary" th:href="@{/profile/edit}" th:text="#{profile.edit}">Edit profile</a>
+        <form sec:authorize="hasRole('CLIENT')" th:action="@{/profile/delete}" method="post" class="m-0"
+              th:data-confirm="#{profile.delete.confirm}"
+              onsubmit="return confirm(this.dataset.confirm);">
+            <button class="btn btn-outline-danger" type="submit" th:text="#{profile.delete}">Delete my account</button>
+        </form>
+    </div>
 </div>
 </body>
 </html>
