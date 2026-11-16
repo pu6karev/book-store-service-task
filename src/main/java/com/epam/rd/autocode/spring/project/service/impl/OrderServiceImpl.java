@@ -4,6 +4,7 @@ import com.epam.rd.autocode.spring.project.dto.BookItemDTO;
 import com.epam.rd.autocode.spring.project.dto.OrderDTO;
 import com.epam.rd.autocode.spring.project.exception.InsufficientFundsException;
 import com.epam.rd.autocode.spring.project.exception.NotFoundException;
+import com.epam.rd.autocode.spring.project.exception.OrderAlreadyConfirmedException;
 import com.epam.rd.autocode.spring.project.model.Book;
 import com.epam.rd.autocode.spring.project.model.BookItem;
 import com.epam.rd.autocode.spring.project.model.Client;
@@ -45,6 +46,32 @@ public class OrderServiceImpl implements OrderService {
         return orderRepository.findAllByEmployeeEmail(employeeEmail).stream()
                 .map(this::convertOrderToOrderDTO)
                 .toList();
+    }
+
+
+    @Override
+    public List<OrderDTO> getPendingOrders() {
+        return orderRepository.findAllByEmployeeIsNullOrderByOrderDateAsc().stream()
+                .map(this::convertOrderToOrderDTO)
+                .toList();
+    }
+
+    @Override
+    @Transactional
+    public void confirmOrder(Long orderId, String employeeEmail) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new NotFoundException("The order with id: " + orderId + " not found"));
+
+        // an order is confirmed when it has an employee; the second confirmation is rejected
+        if (order.getEmployee() != null) {
+            throw new OrderAlreadyConfirmedException("The order with id: " + orderId + " is already confirmed");
+        }
+
+        Employee employee = employeeRepository.findByEmail(employeeEmail)
+                .orElseThrow(() -> new NotFoundException("The employee with email: " + employeeEmail + " not found"));
+
+        order.setEmployee(employee);
+        orderRepository.save(order);
     }
 
     @Override
