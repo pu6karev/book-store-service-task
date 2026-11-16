@@ -4,6 +4,7 @@ import com.epam.rd.autocode.spring.project.dto.BookItemDTO;
 import com.epam.rd.autocode.spring.project.dto.OrderDTO;
 import com.epam.rd.autocode.spring.project.exception.InsufficientFundsException;
 import com.epam.rd.autocode.spring.project.exception.NotFoundException;
+import com.epam.rd.autocode.spring.project.exception.OrderAlreadyConfirmedException;
 import com.epam.rd.autocode.spring.project.model.Book;
 import com.epam.rd.autocode.spring.project.model.BookItem;
 import com.epam.rd.autocode.spring.project.model.Client;
@@ -256,5 +257,59 @@ class OrderServiceImplTest {
         List<OrderDTO> result = orderService.getOrdersByEmployee(EMPLOYEE_EMAIL);
 
         assertThat(result).extracting(OrderDTO::getEmployeeEmail).containsExactly(EMPLOYEE_EMAIL);
+    }
+
+
+    // ---------- pending orders and confirmation ----------
+
+    @Test
+    void getPendingOrders_mapsOrdersWithoutEmployee() {
+        when(orderRepository.findAllByEmployeeIsNullOrderByOrderDateAsc())
+                .thenReturn(List.of(order(7L, client("0.00"), null)));
+
+        List<OrderDTO> result = orderService.getPendingOrders();
+
+        assertThat(result).hasSize(1);
+        assertThat(result.get(0).getId()).isEqualTo(7L);
+        assertThat(result.get(0).getClientEmail()).isEqualTo(CLIENT_EMAIL);
+        assertThat(result.get(0).getEmployeeEmail()).isNull();
+    }
+
+    @Test
+    void confirmOrder_pendingOrder_setsEmployeeAndSaves() {
+        Order order = order(8L, client("0.00"), null);
+        Employee employee = employee();
+        when(orderRepository.findById(8L)).thenReturn(Optional.of(order));
+        when(employeeRepository.findByEmail(EMPLOYEE_EMAIL)).thenReturn(Optional.of(employee));
+
+        orderService.confirmOrder(8L, EMPLOYEE_EMAIL);
+
+        assertThat(order.getEmployee()).isSameAs(employee);
+        verify(orderRepository).save(order);
+    }
+
+    @Test
+    void confirmOrder_alreadyConfirmed_throwsAndKeepsFirstEmployee() {
+        Employee firstEmployee = employee();
+        Order order = order(9L, client("0.00"), firstEmployee);
+        when(orderRepository.findById(9L)).thenReturn(Optional.of(order));
+
+        assertThatThrownBy(() -> orderService.confirmOrder(9L, "second@example.com"))
+                .isInstanceOf(OrderAlreadyConfirmedException.class);
+
+        assertThat(order.getEmployee()).isSameAs(firstEmployee);
+        verify(orderRepository, never()).save(any(Order.class));
+        verifyNoInteractions(employeeRepository);
+    }
+
+    @Test
+    void confirmOrder_orderNotFound_throws() {
+        when(orderRepository.findById(404L)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> orderService.confirmOrder(404L, EMPLOYEE_EMAIL))
+                .isInstanceOf(NotFoundException.class);
+
+        verify(orderRepository, never()).save(any(Order.class));
+        verifyNoInteractions(employeeRepository);
     }
 }
