@@ -46,7 +46,10 @@ public class ClientServiceImpl implements ClientService {
         Client existingClient = clientRepository.findByEmail(email)
                 .orElseThrow(() -> new NotFoundException("The client with email: " + email + " not found"));
 
+        // the mapper would overwrite the flag with the DTO's default (false) and silently unblock the client
+        boolean blocked = existingClient.isBlocked();
         mapper.map(clientDTO, existingClient);
+        existingClient.setBlocked(blocked);
         existingClient.setPassword(passwordEncoder.encode(clientDTO.getPassword()));
 
         Client savedClient = clientRepository.save(existingClient);
@@ -68,7 +71,7 @@ public class ClientServiceImpl implements ClientService {
     @Transactional
     public ClientDTO addClient(ClientDTO clientDTO) {
         if (clientRepository.existsByEmail(clientDTO.getEmail())
-            || employeeRepository.existsByEmail(clientDTO.getEmail())) {
+                || employeeRepository.existsByEmail(clientDTO.getEmail())) {
             throw new AlreadyExistException("The user with email: " + clientDTO.getEmail() + " already exists");
         }
 
@@ -85,6 +88,15 @@ public class ClientServiceImpl implements ClientService {
         Client client = clientRepository.findByEmail(email)
                 .orElseThrow(() -> new NotFoundException("The client with email: " + email + " not found"));
         client.setName(profile.getName());
+        clientRepository.save(client);
+    }
+
+    @Override
+    @Transactional
+    public void setBlocked(String email, boolean blocked) {
+        Client client = clientRepository.findByEmail(email)
+                .orElseThrow(() -> new NotFoundException("The client with email: " + email + " not found"));
+        client.setBlocked(blocked);
         clientRepository.save(client);
     }
 

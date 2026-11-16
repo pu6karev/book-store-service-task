@@ -18,4 +18,6 @@ public interface ClientService {
     ClientDTO addClient(ClientDTO client);
 
     void updateProfile(String email, ProfileDTO profile);
+
+    void setBlocked(String email, boolean blocked);
 }

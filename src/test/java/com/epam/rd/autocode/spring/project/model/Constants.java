@@ -55,7 +55,7 @@ public class Constants {
 
     static class Client {
         public static final String CLASS_NAME = "Client";
-        public static final int CLASS_COUNT_FIELDS = 1;
+        public static final int CLASS_COUNT_FIELDS = 2;
         public static final int CLASS_COUNT_CONSTRUCTORS = 2;
         public static final int PARAMETERS_IN_CONSTRUCTOR_WITH_PARAMETERS = 5;
     }

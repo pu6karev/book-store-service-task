@@ -42,9 +42,9 @@ public class Constants {
 
     static class ClientDTO {
         public static final String CLASS_NAME = "ClientDTO";
-        public static final int CLASS_COUNT_FIELDS = 4;
+        public static final int CLASS_COUNT_FIELDS = 5;
         public static final int CLASS_COUNT_CONSTRUCTORS = 2;
-        public static final int PARAMETERS_IN_CONSTRUCTOR_WITH_PARAMETERS = 4;
+        public static final int PARAMETERS_IN_CONSTRUCTOR_WITH_PARAMETERS = 5;
     }
 
     static class EmployeeDTO {

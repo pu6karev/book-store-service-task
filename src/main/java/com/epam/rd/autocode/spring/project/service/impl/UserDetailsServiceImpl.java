@@ -17,14 +17,15 @@ public class UserDetailsServiceImpl implements UserDetailsService {
     @Override
     public UserDetails loadUserByUsername(String email) {
         return employeeRepository.findByEmail(email)
-                .map(e -> build(e.getEmail(), e.getPassword(), "EMPLOYEE"))
+                .map(e -> build(e.getEmail(), e.getPassword(), "EMPLOYEE", false))
                 .or(() -> clientRepository.findByEmail(email)
-                        .map(c -> build(c.getEmail(), c.getPassword(), "CLIENT")))
+                        .map(c -> build(c.getEmail(), c.getPassword(), "CLIENT", c.isBlocked())))
                 .orElseThrow(() -> new UsernameNotFoundException("User not found: " + email));
     }
 
-    private UserDetails build(String email, String password, String role) {
+    // a locked account cannot sign in: Spring throws LockedException
+    private UserDetails build(String email, String password, String role, boolean locked) {
         return org.springframework.security.core.userdetails.User
-                .withUsername(email).password(password).roles(role).build();
+                .withUsername(email).password(password).roles(role).accountLocked(locked).build();
     }
 }

@@ -46,7 +46,7 @@ public class AuthController {
         }
         try {
             clientService.addClient(new ClientDTO(
-                    form.getName(), form.getEmail(), form.getPassword(), INITIAL_BALANCE));
+                    form.getName(), form.getEmail(), form.getPassword(), INITIAL_BALANCE, false));
         } catch (AlreadyExistException ex) {
             result.rejectValue("email", "validation.email.exists");
             return "register";

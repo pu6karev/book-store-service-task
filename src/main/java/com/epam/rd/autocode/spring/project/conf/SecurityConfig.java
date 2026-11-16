@@ -4,6 +4,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpMethod;
+import org.springframework.security.authentication.LockedException;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -50,11 +51,16 @@ public class SecurityConfig {
                         .requestMatchers("/login", "/register", "/error", "/css/**", "/js/**").permitAll()
                         .requestMatchers("/books/add", "/books/edit", "/books/delete").hasRole("EMPLOYEE")
                         .requestMatchers("/cart/**", "/orders").hasRole("CLIENT")
-                        .requestMatchers("/orders/**").hasRole("EMPLOYEE")
+                        .requestMatchers("/orders/**", "/clients/**").hasRole("EMPLOYEE")
                         .anyRequest().authenticated())
                 .formLogin(form -> form
                         .loginPage("/login")
                         .defaultSuccessUrl("/books")
+                        // a blocked client gets a separate message instead of "invalid email or password"
+                        .failureHandler((request, response, exception) -> {
+                            String target = exception instanceof LockedException ? "/login?blocked" : "/login?error";
+                            response.sendRedirect(request.getContextPath() + target);
+                        })
                         .permitAll())
                 .logout(logout -> logout
                         .logoutSuccessUrl("/login?logout")

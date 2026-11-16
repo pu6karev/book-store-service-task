@@ -31,4 +31,8 @@ public class ClientDTO{
     @NotNull(message = "Balance must not be null")
     @PositiveOrZero(message = "Balance cannot be negative")
     private BigDecimal balance;
+
+    // changed only via ClientService.setBlocked; ignored in requests
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+    private boolean blocked;
 }
