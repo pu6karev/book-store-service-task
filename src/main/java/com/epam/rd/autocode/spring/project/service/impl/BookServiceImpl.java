@@ -9,6 +9,7 @@ import com.epam.rd.autocode.spring.project.repo.BookRepository;
 import com.epam.rd.autocode.spring.project.repo.OrderRepository;
 import com.epam.rd.autocode.spring.project.service.BookService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -17,6 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -35,7 +37,7 @@ public class BookServiceImpl implements BookService {
     @Override
     public BookDTO getBookByName(String name) {
         Book book = bookRepository.findByName(name)
-                    .orElseThrow(() -> new NotFoundException("The book " + name + " not found"));
+                .orElseThrow(() -> new NotFoundException("The book " + name + " not found"));
 
         return convertBookToBookDTO(book);
     }
@@ -54,6 +56,7 @@ public class BookServiceImpl implements BookService {
         mapper.map(bookDTO, existingBook);
 
         Book savedBook = bookRepository.save(existingBook);
+        log.debug("Book updated: {} -> {}", name, bookDTO.getName());
 
         return convertBookToBookDTO(savedBook);
     }
@@ -65,10 +68,12 @@ public class BookServiceImpl implements BookService {
             throw new NotFoundException("The book " + name + " not found");
         }
         if(orderRepository.existsByBookItemsBookName(name)) {
-           throw new BookInUseException("The book " + name + " cannot be deleted: it is included in orders");
+            log.warn("Book {} cannot be deleted: it is included in orders", name);
+            throw new BookInUseException("The book " + name + " cannot be deleted: it is included in orders");
         }
 
         bookRepository.deleteByName(name);
+        log.info("Book deleted: {}", name);
     }
 
     @Override
@@ -79,11 +84,13 @@ public class BookServiceImpl implements BookService {
         }
 
         Book savedBook = bookRepository.save(convertBookDTOToBook(bookDTO));
+        log.info("Book added: {}", bookDTO.getName());
         return convertBookToBookDTO(savedBook);
     }
 
     @Override
     public Page<BookDTO> searchBooks(String q, Pageable pageable) {
+        log.debug("Searching books: q='{}', {}", q, pageable);
         return bookRepository.search(q, pageable).map(this::convertBookToBookDTO);
     }
 

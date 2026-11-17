@@ -16,6 +16,7 @@ import com.epam.rd.autocode.spring.project.repo.EmployeeRepository;
 import com.epam.rd.autocode.spring.project.repo.OrderRepository;
 import com.epam.rd.autocode.spring.project.service.OrderService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -24,6 +25,7 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -64,6 +66,7 @@ public class OrderServiceImpl implements OrderService {
 
         // an order is confirmed when it has an employee; the second confirmation is rejected
         if (order.getEmployee() != null) {
+            log.warn("Order {} is already confirmed, confirmation by {} rejected", orderId, employeeEmail);
             throw new OrderAlreadyConfirmedException("The order with id: " + orderId + " is already confirmed");
         }
 
@@ -72,11 +75,14 @@ public class OrderServiceImpl implements OrderService {
 
         order.setEmployee(employee);
         orderRepository.save(order);
+        log.info("Order {} confirmed by {}", orderId, employeeEmail);
     }
 
     @Override
     @Transactional
     public OrderDTO addOrder(OrderDTO orderDTO) {
+        log.debug("Placing order for client {}", orderDTO.getClientEmail());
+
         // the client's row is locked until the end of the transaction:
         // two parallel orders cannot spend the same balance
         Client client = clientRepository.findByEmailForUpdate(orderDTO.getClientEmail())
@@ -111,6 +117,8 @@ public class OrderServiceImpl implements OrderService {
         }
 
         if (client.getBalance().compareTo(total) < 0) {
+            log.warn("Order rejected: insufficient funds, client={}, balance={}, total={}",
+                    orderDTO.getClientEmail(), client.getBalance(), total);
             throw new InsufficientFundsException(
                     "Insufficient funds: balance " + client.getBalance() + ", order total " + total);
         }
@@ -119,6 +127,8 @@ public class OrderServiceImpl implements OrderService {
 
         order.setPrice(total);
         Order savedOrder = orderRepository.save(order);
+        log.info("Order created: id={}, client={}, total={}, items={}",
+                savedOrder.getId(), orderDTO.getClientEmail(), total, orderDTO.getBookItems().size());
 
         return convertOrderToOrderDTO(savedOrder);
     }

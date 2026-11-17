@@ -9,6 +9,7 @@ import com.epam.rd.autocode.spring.project.repo.ClientRepository;
 import com.epam.rd.autocode.spring.project.repo.EmployeeRepository;
 import com.epam.rd.autocode.spring.project.service.EmployeeService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -16,6 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
+@Slf4j
 @Service
 @Transactional(readOnly = true)
 @RequiredArgsConstructor
@@ -50,6 +52,7 @@ public class EmployeeServiceImpl implements EmployeeService {
         existingEmployee.setPassword(passwordEncoder.encode(employeeDTO.getPassword()));
 
         Employee savedEmployee = employeeRepository.save(existingEmployee);
+        log.debug("Employee updated: {}", email);
 
         return convertEmployeeToEmployeeDTO(savedEmployee);
     }
@@ -62,13 +65,14 @@ public class EmployeeServiceImpl implements EmployeeService {
         }
 
         employeeRepository.deleteByEmail(email);
+        log.info("Employee deleted: {}", email);
     }
 
     @Override
     @Transactional
     public EmployeeDTO addEmployee(EmployeeDTO employeeDTO) {
         if (employeeRepository.existsByEmail(employeeDTO.getEmail())
-            || clientRepository.existsByEmail(employeeDTO.getEmail())) {
+                || clientRepository.existsByEmail(employeeDTO.getEmail())) {
             throw new AlreadyExistException("The user with email: " + employeeDTO.getEmail() + " already exists");
         }
 
@@ -76,6 +80,7 @@ public class EmployeeServiceImpl implements EmployeeService {
         employeeEntity.setPassword(passwordEncoder.encode(employeeDTO.getPassword()));
 
         Employee savedEmployee = employeeRepository.save(employeeEntity);
+        log.info("Employee added: {}", employeeDTO.getEmail());
         return convertEmployeeToEmployeeDTO(savedEmployee);
     }
 
@@ -88,6 +93,7 @@ public class EmployeeServiceImpl implements EmployeeService {
         employee.setPhone(profile.getPhone());
         employee.setBirthDate(profile.getBirthDate());
         employeeRepository.save(employee);
+        log.debug("Employee profile updated: {}", email);
     }
 
     private EmployeeDTO convertEmployeeToEmployeeDTO(Employee employee) {

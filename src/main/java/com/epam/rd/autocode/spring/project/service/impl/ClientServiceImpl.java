@@ -11,6 +11,7 @@ import com.epam.rd.autocode.spring.project.repo.EmployeeRepository;
 import com.epam.rd.autocode.spring.project.repo.OrderRepository;
 import com.epam.rd.autocode.spring.project.service.ClientService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -18,6 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -56,6 +58,7 @@ public class ClientServiceImpl implements ClientService {
         existingClient.setPassword(passwordEncoder.encode(clientDTO.getPassword()));
 
         Client savedClient = clientRepository.save(existingClient);
+        log.debug("Client updated: {}", email);
 
         return convertClientToClientDTO(savedClient);
     }
@@ -68,10 +71,12 @@ public class ClientServiceImpl implements ClientService {
         }
         // orders.client_id is NOT NULL: a client with orders cannot be deleted (the order history is kept)
         if (orderRepository.existsByClientEmail(email)) {
+            log.warn("Client {} cannot be deleted: has orders", email);
             throw new ClientInUseException("The client with email: " + email + " has orders and cannot be deleted");
         }
 
         clientRepository.deleteByEmail(email);
+        log.info("Client deleted: {}", email);
     }
 
     @Override
@@ -86,6 +91,7 @@ public class ClientServiceImpl implements ClientService {
         clientEntity.setPassword(passwordEncoder.encode(clientDTO.getPassword()));
 
         Client savedClient = clientRepository.save(clientEntity);
+        log.info("Client registered: {}", clientDTO.getEmail());
         return convertClientToClientDTO(savedClient);
     }
 
@@ -96,6 +102,7 @@ public class ClientServiceImpl implements ClientService {
                 .orElseThrow(() -> new NotFoundException("The client with email: " + email + " not found"));
         client.setName(profile.getName());
         clientRepository.save(client);
+        log.debug("Client profile updated: {}", email);
     }
 
     @Override
@@ -105,6 +112,7 @@ public class ClientServiceImpl implements ClientService {
                 .orElseThrow(() -> new NotFoundException("The client with email: " + email + " not found"));
         client.setBlocked(blocked);
         clientRepository.save(client);
+        log.info("Client {}: {}", email, blocked ? "blocked" : "unblocked");
     }
 
     private ClientDTO convertClientToClientDTO(Client client) {
