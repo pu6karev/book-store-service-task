@@ -22,7 +22,7 @@ public class Client extends User{
 
     private BigDecimal balance;
 
-    // the default lets INSERTs without this column (sql.sql) work
+    // the default lets INSERTs without this column (V2__initial_data.sql) work
     @Column(nullable = false)
     @ColumnDefault("false")
     private boolean blocked;
