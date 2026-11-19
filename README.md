@@ -1,157 +1,130 @@
-# Book Store. Spring Project
+# BookStore
 
-The purpose of this task is to check your knowledge and understanding in Java and Spring.
+Online book store on Spring Boot: a Thymeleaf web UI for clients and employees plus a REST API for staff.
+Training project (EPAM Java Fundamentals).
 
-Estimated workload of this exercise is **15 hrs**.
+**Stack:** Java 17 · Spring Boot 3.2.1 · Spring Data JPA · Spring Security 6 · Thymeleaf · Flyway · H2 · jjwt 0.13.0 · Lombok · ModelMapper · JUnit 5 · Mockito · JaCoCo · Maven
 
-## Description
+## Features
 
-Your objective is to develop a "Book Store Service" following the MVC pattern.
+| Role | What they can do |
+|---|---|
+| Anonymous | Sign in, or register as a client (starting balance 100.00); every other page redirects to /login |
+| Client | Search, sort and page through books; cart; place orders (balance is checked and charged); order history; edit profile; delete own account (only if there are no orders) |
+| Employee | Add, edit, delete books; confirm pending orders; list clients and block/unblock them; edit profile |
 
-> Project may have two main roles of authority: customer and employee.
+Also: EN/UK interface switch, validation errors shown per field in the current language, 403/404/500 pages,
+REST API under `/api` (`books`, `clients`, `employees`, `orders`).
 
-The project structure is already set up, with essential classes waiting for implementation in their respective folders.
-Your project is organized into several packages. Here's a brief overview of each:
+## Run
 
-### Packages Overview
+Requirements: JDK 17 and Maven (there is no Maven wrapper). The application listens on port **8084**.
 
-#### `conf`
+```bash
+mvn spring-boot:run                                    # default profile: in-memory H2
+mvn spring-boot:run "-Dspring-boot.run.profiles=prod"  # prod profile: file-based H2 + Flyway
+```
 
-- Houses all configuration classes.
+Open <http://localhost:8084>. Demo accounts exist in both profiles; the password of all of them is `password123`.
 
-#### `controller`
+| Role | Accounts |
+|---|---|
+| Employee | `john.doe@email.com`, `jane.smith@email.com` and 8 more (10 in total) |
+| Client | `client1@example.com` … `client10@example.com` |
 
-- Contains controller files.
+The data contains 10 books and no orders.
 
-#### `dto`
+### Profiles
 
-- Contains DTO files.
+| | default | `prod` |
+|---|---|---|
+| Database | H2 in memory (`jdbc:h2:mem:bookdb`) | H2 file `./data/bookstore` (password `DB_PASSWORD`) |
+| Schema | Hibernate `create-drop` | Flyway `V1`–`V3`, Hibernate `ddl-auto=validate` |
+| Initial data | `V2__initial_data.sql`, loaded by Spring | `V2__initial_data.sql`, applied by Flyway |
+| Logging | `DEBUG` for the application package, console | `INFO`, console and `logs/bookstore.log` |
+| JWT secret | `app.jwt.secret` (development value) | environment variable `JWT_SECRET` |
 
-#### `model`
+`JWT_SECRET` must be at least 32 bytes long, otherwise the application does not start. Both `JWT_SECRET` and `DB_PASSWORD` have
+demo defaults in `application-prod.properties`; set your own values outside a demo.
 
-- Contains all model classes.
+## Security
 
-#### `exception`
+Two filter chains in `SecurityConfig`:
 
-- Contains custom user exception files.
+| | Web (Thymeleaf pages) | REST (`/api/**`) |
+|---|---|---|
+| Sign-in | form `/login` | HTTP Basic |
+| Authentication carried by | JWT in an HttpOnly cookie | credentials on every request |
+| Server-side session for authentication | no | no |
+| CSRF protection | enabled | disabled (no cookies are used) |
 
-#### `repo`
+- **Database-backed authentication.** `UserDetailsServiceImpl` looks the email up in `employees`, then in `clients`; the role follows from the table. Passwords are BCrypt hashes.
+- **Authorization on three levels:** URL rules in the filter chains, `@PreAuthorize` on controllers, `sec:authorize` in templates.
+  Employees manage books, orders and clients; clients use the cart and their own orders and profile.
+  In the REST API everything except `GET /api/books` is employee-only.
+- **JWT (web chain).** After a form login the server sets a signed token (HS256) in the `JWT` cookie: `HttpOnly`, `SameSite=Lax`, `Path=/`, `Max-Age` equal to the token lifetime.
+  The token holds only `sub` (email), `iat` and `exp`, no roles. On every request `JwtAuthenticationFilter` verifies the token, loads the user from the database and takes the roles from there,
+  so a blocked or deleted user is rejected immediately, and a forged or expired token leads to `/login`.
+  Logout and account deletion clear the cookie; every login starts a new `HttpSession`, so a cart is never inherited by the next user.
+- **Settings:** `app.jwt.secret`, `app.jwt.expiration-minutes` (default 60).
+- **Passwords and input:** `@StrongPassword` (at least 8 characters, lower and upper case, a digit, a special character) and `@ValidEmail` on the DTOs.
+  Error responses carry no stack traces or messages (`server.error.include-*=never`).
 
-- Contains repository files.
+## Domain rules
 
-#### `service`
+- **Orders.** Prices, total and date are calculated on the server. The balance is checked and charged in one transaction under a pessimistic lock on the client row (`findByEmailForUpdate`).
+  `BookItem.unitPrice` keeps the price at the time of the order. An order is confirmed when an employee is assigned to it.
+- **Cart.** Held in the `HttpSession`, up to 99 copies per book.
+- **Blocking.** `Client.blocked`; a blocked client cannot sign in, and a client who is already signed in is rejected on the next request.
+- **Books** are identified by their unique title (`/books/view?name=`, `/api/books/{name}`); the characters `/ \ ? # % ;` are not allowed in titles.
+- **Custom queries.** `@Query` for book search by title or author with `Pageable` (the web list shows 5 per page and sorts by title, author or price) and for the locking client lookup; derived queries for the rest.
 
-- Includes interfaces with declared methods for all services.
+## Structure
 
-- `impl`: Encompasses implementations of declared services.
+`com.epam.rd.autocode.spring.project`: `conf` (security, JWT, locale, ModelMapper) · `controller` (REST and MVC controllers, MVC exception handler) · `dto` · `exception` (six custom exceptions, REST handler) · `model` · `repo` · `service` and `service.impl` · `validation`.
+Templates are in `src/main/resources/templates`, messages in `messages.properties` and `messages_uk.properties`, migrations in `db/migration`.
 
-The class diagram of the Domain model is shown in the figure below:
+- **Exceptions.** `GlobalExceptionHandler` serves the REST controllers (404, 409, generic 500 as plain text); `WebExceptionHandler` serves the MVC controllers (`error/404`, `error/500`); 403 comes from Spring Security (`error/403`).
+- **Logging.** Explicit `@Slf4j` logging in services, security listener and JWT filter. Creation, deletion, blocking and confirmation are `INFO`; reads and updates are `DEBUG`; rejected operations and failed logins are `WARN`; unhandled exceptions are `ERROR`.
+  Passwords and tokens are never logged.
 
-<img src="img/Diagram.png" alt="DTO" width="1000"/>
+## Tests
 
-### Permissions
+```bash
+mvn test
+```
 
-> For Any Registered Users
+334 tests, all green. The JaCoCo report is generated by the same command: `target/site/jacoco/index.html`.
 
-- Access a list of available books.
-- View detailed information about any book.
-- Edit personal information and view user profile.
+| Layer | Tests |
+|---|---|
+| Services (Mockito) | 59 |
+| Controllers and security chains (`@WebMvcTest`, real `SecurityConfig`) | 105 |
+| JWT (unit tests plus a `@SpringBootTest` login flow) | 15 |
+| DTOs, models, exceptions, configuration, context startup | 155 |
 
-> For Employees
+Coverage from the JaCoCo report (Lombok-generated code is excluded via `lombok.config`):
 
-- Add, edit, or delete books from the list.
-- Confirm orders placed by customers.
-- Block or unblock customer accounts.
-- Access a list of registered customers.
+| | Instructions | Branches |
+|---|---|---|
+| Whole project | 98.2% | 88.0% |
+| `service.impl` | 99.4% | 100% |
+| `controller` | 99.8% | 87.0% |
+| `conf` | 94.9% | 66.7% |
 
-> For Customers
+## Quick tour
 
-- Add books to the basket for purchase.
-- Delete their account.
-- Submit orders for purchase.
+1. Sign in as `client1@example.com`, open a book, *Add to cart*, then *Cart* → *Place order*.
+2. In a private window sign in as `john.doe@email.com`: *Pending orders* → *Confirm*; *Clients* → *Block* the client.
+3. The blocked client's next click leads to `/login`: the user is checked in the database on every request.
+4. Switch `EN | UK` in the header; open `/clients` as a client to see the 403 page.
+5. REST: `curl -u john.doe@email.com:password123 http://localhost:8084/api/clients`
 
-### Services
+## Known limitations
 
-Below is a list of available services with corresponding methods for implementation.
-
-> Note: You can add your own methods to existing services, as well as create additional services.
-
-#### OrderService
-
-* `getAllOrdersByClient(email: String)`
-  Retrieves a list of all orders by client's email placed in the system.
-* `getAllOrdersByEmployee(email: String)`
-  Retrieves a list of all orders by employee's email placed in the system.
-* `addOrder(order: OrderDTO)`
-  Adds a new order to the system, incorporating the provided order details.
-
-#### EmployeeService
-
-* `getAllEmployees()`
-  Retrieves a list of all employees registered in the system.
-* `getEmployeeByEmail(email: String)`
-  Fetches details of a specific employee based on their email.
-* `updateEmployeeByEmail(email: String, employee: EmployeeDTO)`
-  Updates the information of an existing employee identified by their email with the provided details.
-* `deleteEmployeeByEmail(email: String)`
-  Removes an employee from the system based on their email.
-* `addEmployee(employee: EmployeeDTO)`
-  Registers a new employee in the system with the provided details.
-
-#### ClientService
-
-* `getAllClients()`
-  Retrieves a list of all clients (customers) registered in the system.
-* `getClientByEmail(email: String)`
-  Fetches details of a specific client based on their email.
-* `updateClientByEmail(email: String, client: ClientDTO)`
-  Updates the information of an existing client identified by their email with the provided details.
-* `deleteClientByEmail(email: String)`
-  Removes a client from the system based on their email.
-* `addClient(client: ClientDTO)`
-  Registers a new client in the system with the provided details.
-
-#### BookService
-
-* `getAllBooks()`
-  Retrieves a list of all books available in the store.
-* `getBookByName(name: String)`
-  Fetches details of a specific book based on its name.
-* `updateBookByName(name: String, book: BookDTO)`
-  Updates the information of an existing book identified by its name with the provided details.
-* `deleteBookByName(name: String)`
-  Removes a book from the system based on its name.
-* `addBook(book: BookDTO)`
-  Adds a new book to the system with the provided details.
-
-## Requirements
-
-Ensure implementation of the following:
-
-- `Spring Data JPA` for efficient data management.
--  Incorporate `Spring Security` for robust authentication and authorization.
--  Enable `Internationalization and Localization` to support English and any language you choose.
--  Implement `Validation` for data integrity.
--  Establish `Error handling` for graceful error management.
--  Utilize `DTOs` - data transfer objects structured as illustrated below:
-
-<img src="img/DTO.png" alt="DTO" width="600"/>
-
-## Would be nice
-
-Consider the following additional features:
-
-- Incorporate `Logging` for comprehensive system monitoring.
-- Implement `Pagination and Sorting` for enhanced data presentation.
-
-## Recommendations
-
-> Use wrapper classes (like Long, Integer, etc.) instead of primitive types whenever possible.
-
-- Utilize `Lombok` for streamlined Java code.
-- Use `ModelMapper` for easy mapping between objects.
-- Utilize `Thymeleaf` for HTML templating.
-- Explore the `test` folder to execute provided test cases for your solution.
-- Refer to the `main\resources\sql` folder for SQL scripts to initialize data.
-
-**Good luck!**
+- Only authentication is stateless: the cart and the CSRF token live in the `HttpSession`.
+- A JWT cannot be revoked before it expires (mitigated by the 60-minute lifetime and the database check on every request).
+- The cookie has no `Secure` flag (the application runs on plain HTTP); the default secrets and the demo accounts are for demonstration only, including the `prod` profile.
+- A client with orders cannot delete the account. There is no password change or reset, login throttling, OAuth2 or refresh tokens. A client's balance can only be set by an employee through the REST API.
+- Two known paths end in a 500 page or response: an unknown `sort` property in `/books?sort=`, and a REST `PUT` that sets an email already in use.
+- Validation messages in the REST DTOs and the exception texts in services are English only.
