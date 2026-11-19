@@ -1,18 +1,24 @@
 package com.epam.rd.autocode.spring.project.conf;
 
 import com.epam.rd.autocode.spring.project.util.AbstractWebMvcTest;
+import io.jsonwebtoken.JwtException;
+import jakarta.servlet.http.Cookie;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.test.context.support.WithMockUser;
 
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
@@ -23,7 +29,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 // Access rules of both filter chains as seen from the outside (URL rules together with @PreAuthorize):
 // who gets 401/403/redirect to the login page, who gets 200, and where CSRF is required.
+// The last section checks what the web chain does with the JWT cookie (JwtService and UserDetailsService are mocks).
 class SecurityConfigWebMvcTest extends AbstractWebMvcTest {
+
+    private static final String TOKEN = "any-token-value";
 
     @BeforeEach
     void setUpMocks() {
@@ -90,7 +99,7 @@ class SecurityConfigWebMvcTest extends AbstractWebMvcTest {
                 .andExpect(status().isNoContent());
     }
 
-    // ---------- Web chain (Thymeleaf, session, CSRF) ----------
+    // ---------- Web chain (Thymeleaf, JWT cookie, CSRF) ----------
 
     @ParameterizedTest
     @ValueSource(strings = {"/login", "/register"})
@@ -175,5 +184,63 @@ class SecurityConfigWebMvcTest extends AbstractWebMvcTest {
         mockMvc.perform(post("/books/delete")
                         .param("name", BOOK_NAME))
                 .andExpect(status().isForbidden());
+    }
+
+    // ---------- JWT cookie in the web chain ----------
+
+    @Test
+    void jwtCookie_whenValid_shouldAuthenticateClientWithoutSession() throws Exception {
+        when(jwtService.extractEmail(TOKEN)).thenReturn(CLIENT_EMAIL);
+        when(userDetailsService.loadUserByUsername(CLIENT_EMAIL)).thenReturn(clientDetails(false));
+
+        // no @WithMockUser: the user comes only from the cookie, the roles from the loaded UserDetails
+        mockMvc.perform(get("/cart").cookie(jwtCookie()))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void jwtCookie_whenInvalid_shouldRedirectToLoginWithoutLoadingUser() throws Exception {
+        when(jwtService.extractEmail(TOKEN)).thenThrow(new JwtException("invalid"));
+
+        mockMvc.perform(get("/cart").cookie(jwtCookie()))
+                .andExpect(status().isFound())
+                .andExpect(redirectedUrlPattern("**/login"));
+
+        verifyNoInteractions(userDetailsService);
+    }
+
+    @Test
+    void jwtCookie_whenClientIsBlocked_shouldRedirectToLogin() throws Exception {
+        when(jwtService.extractEmail(TOKEN)).thenReturn(CLIENT_EMAIL);
+        when(userDetailsService.loadUserByUsername(CLIENT_EMAIL)).thenReturn(clientDetails(true));
+
+        mockMvc.perform(get("/cart").cookie(jwtCookie()))
+                .andExpect(status().isFound())
+                .andExpect(redirectedUrlPattern("**/login"));
+    }
+
+    @Test
+    void jwtCookie_whenClientIsDeleted_shouldRedirectToLogin() throws Exception {
+        when(jwtService.extractEmail(TOKEN)).thenReturn(CLIENT_EMAIL);
+        when(userDetailsService.loadUserByUsername(CLIENT_EMAIL))
+                .thenThrow(new UsernameNotFoundException("deleted"));
+
+        mockMvc.perform(get("/cart").cookie(jwtCookie()))
+                .andExpect(status().isFound())
+                .andExpect(redirectedUrlPattern("**/login"));
+    }
+
+    // ---------- helpers ----------
+
+    private static Cookie jwtCookie() {
+        return new Cookie(JwtService.COOKIE_NAME, TOKEN);
+    }
+
+    private static UserDetails clientDetails(boolean locked) {
+        return User.withUsername(CLIENT_EMAIL)
+                .password("{noop}password")
+                .roles("CLIENT")
+                .accountLocked(locked)
+                .build();
     }
 }

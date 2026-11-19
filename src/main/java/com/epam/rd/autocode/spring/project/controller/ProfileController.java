@@ -1,5 +1,6 @@
 package com.epam.rd.autocode.spring.project.controller;
 
+import com.epam.rd.autocode.spring.project.conf.JwtService;
 import com.epam.rd.autocode.spring.project.dto.EmployeeDTO;
 import com.epam.rd.autocode.spring.project.dto.ProfileDTO;
 import com.epam.rd.autocode.spring.project.exception.ClientInUseException;
@@ -11,6 +12,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.web.authentication.logout.CookieClearingLogoutHandler;
 import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -96,6 +98,8 @@ public class ProfileController {
         }
         // ends the session together with the cart; that is why the message goes in the query string, not in a flash
         new SecurityContextLogoutHandler().logout(request, response, authentication);
+        // removes the JWT cookie (Max-Age=0); a token of a deleted user would be rejected anyway, but there is no reason to keep it
+        new CookieClearingLogoutHandler(JwtService.COOKIE_NAME).logout(request, response, authentication);
         return "redirect:/login?deleted";
     }
 

@@ -1,5 +1,6 @@
 package com.epam.rd.autocode.spring.project.util;
 
+import com.epam.rd.autocode.spring.project.conf.JwtService;
 import com.epam.rd.autocode.spring.project.conf.SecurityConfig;
 import com.epam.rd.autocode.spring.project.dto.BookDTO;
 import com.epam.rd.autocode.spring.project.dto.ClientDTO;
@@ -15,6 +16,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.math.BigDecimal;
@@ -50,6 +52,14 @@ public abstract class AbstractWebMvcTest {
 
     @MockBean
     protected OrderService orderService;
+
+    // beans of the web chain (JwtAuthenticationFilter is created in SecurityConfig from them);
+    // the slice does not scan @Component/@Service classes, so they are mocks
+    @MockBean
+    protected JwtService jwtService;
+
+    @MockBean
+    protected UserDetailsService userDetailsService;
 
     // ---------- test data ----------
 
