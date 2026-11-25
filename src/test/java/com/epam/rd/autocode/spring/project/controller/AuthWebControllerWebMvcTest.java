@@ -22,7 +22,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.view;
 
 // Registration is public (permitAll), so no authenticated user is needed in this class.
-class AuthControllerWebMvcTest extends AbstractWebMvcTest {
+class AuthWebControllerWebMvcTest extends AbstractWebMvcTest {
     private static final String NEW_EMAIL = "newclient@example.com";
     private static final String PASSWORD = "StrongPass1!";
 

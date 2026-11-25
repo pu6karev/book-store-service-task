@@ -30,7 +30,7 @@ import java.util.Map;
 @RequestMapping("/cart")
 @PreAuthorize("hasRole('CLIENT')")
 @RequiredArgsConstructor
-public class CartController {
+public class CartWebController {
     private static final String CART_ATTRIBUTE = "cart";
     private static final int MAX_QUANTITY = 99;
     private static final String FLASH_SUCCESS = "flashSuccess";

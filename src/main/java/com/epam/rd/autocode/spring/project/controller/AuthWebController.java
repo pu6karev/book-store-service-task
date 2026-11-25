@@ -17,7 +17,7 @@ import java.math.BigDecimal;
 
 @Controller
 @RequiredArgsConstructor
-public class AuthController {
+public class AuthWebController {
     // starting balance for a demo account; this can later be replaced by depositing funds into the account
     private static final BigDecimal INITIAL_BALANCE = new BigDecimal("100.00");
 

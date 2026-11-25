@@ -21,7 +21,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.view;
 
 // The profile pages work for both roles, so the user is set on each test.
-class ProfileControllerWebMvcTest extends AbstractWebMvcTest {
+class ProfileWebControllerWebMvcTest extends AbstractWebMvcTest {
 
     // ---------- view ----------
 

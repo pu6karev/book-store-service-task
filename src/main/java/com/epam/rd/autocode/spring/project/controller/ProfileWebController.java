@@ -26,7 +26,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 @Controller
 @RequestMapping("/profile")
 @RequiredArgsConstructor
-public class ProfileController {
+public class ProfileWebController {
     private static final String FLASH_ERROR = "flashError";
 
     private final ClientService clientService;

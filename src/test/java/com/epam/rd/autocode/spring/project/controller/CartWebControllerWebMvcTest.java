@@ -31,7 +31,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 // The cart lives in the HttpSession (attribute "cart": book name -> quantity), only for clients.
 @WithMockUser(username = CLIENT_EMAIL, roles = "CLIENT")
-class CartControllerWebMvcTest extends AbstractWebMvcTest {
+class CartWebControllerWebMvcTest extends AbstractWebMvcTest {
     private static final String DELETED_BOOK = "DeletedBook";
 
     // ---------- helpers ----------

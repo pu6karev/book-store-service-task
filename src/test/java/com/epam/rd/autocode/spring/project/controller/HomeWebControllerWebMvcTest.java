@@ -10,7 +10,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WithMockUser(username = CLIENT_EMAIL, roles = "CLIENT")
-class HomeControllerWebMvcTest extends AbstractWebMvcTest {
+class HomeWebControllerWebMvcTest extends AbstractWebMvcTest {
 
     @Test
     void home_shouldRedirectToBooks() throws Exception {
