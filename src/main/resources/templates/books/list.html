@@ -21,6 +21,13 @@
         <div class="col-auto">
             <button class="btn btn-primary" type="submit" th:text="#{books.search}">Search</button>
         </div>
+        <div class="col-auto">
+            <select class="form-select" name="genre" th:aria-label="#{book.genre}" onchange="this.form.submit()">
+                <option value="" th:text="#{books.genre.all}">All genres</option>
+                <option th:each="g : ${genres}" th:value="${g}" th:text="${g.displayName}"
+                        th:selected="${g == genre}"></option>
+            </select>
+        </div>
     </form>
 
     <p th:if="${page.empty}" th:text="#{books.empty}">No books found</p>
@@ -29,22 +36,22 @@
         <thead>
         <tr>
             <th><span th:text="#{book.name}">Title</span>
-                <a th:href="@{/books(q=${q}, sort='name,asc')}">▲</a>
-                <a th:href="@{/books(q=${q}, sort='name,desc')}">▼</a></th>
+                <a th:href="@{/books(q=${q}, genre=${genre}, sort='name,asc')}">▲</a>
+                <a th:href="@{/books(q=${q}, genre=${genre}, sort='name,desc')}">▼</a></th>
             <th><span th:text="#{book.author}">Author</span>
-                <a th:href="@{/books(q=${q}, sort='author,asc')}">▲</a>
-                <a th:href="@{/books(q=${q}, sort='author,desc')}">▼</a></th>
+                <a th:href="@{/books(q=${q}, genre=${genre}, sort='author,asc')}">▲</a>
+                <a th:href="@{/books(q=${q}, genre=${genre}, sort='author,desc')}">▼</a></th>
             <th th:text="#{book.genre}">Genre</th>
             <th><span th:text="#{book.price}">Price</span>
-                <a th:href="@{/books(q=${q}, sort='price,asc')}">▲</a>
-                <a th:href="@{/books(q=${q}, sort='price,desc')}">▼</a></th>
+                <a th:href="@{/books(q=${q}, genre=${genre}, sort='price,asc')}">▲</a>
+                <a th:href="@{/books(q=${q}, genre=${genre}, sort='price,desc')}">▼</a></th>
         </tr>
         </thead>
         <tbody>
         <tr th:each="b : ${page.content}">
             <td><a th:href="@{/books/view(name=${b.name})}" th:text="${b.name}"></a></td>
             <td th:text="${b.author}"></td>
-            <td th:text="${b.genre}"></td>
+            <td th:text="${b.genre?.displayName}"></td>
             <td th:text="${#numbers.formatDecimal(b.price, 1, 2)}"></td>
         </tr>
         </tbody>
@@ -53,12 +60,12 @@
     <nav class="d-flex justify-content-between align-items-center" th:if="${page.totalPages > 1}">
         <a class="btn btn-outline-secondary btn-sm"
            th:classappend="${!page.hasPrevious()} ? 'disabled'"
-           th:href="@{/books(q=${q}, sort=${sort}, page=${page.number - 1})}"
+           th:href="@{/books(q=${q}, genre=${genre}, sort=${sort}, page=${page.number - 1})}"
            th:text="#{books.prev}">Previous</a>
         <span th:text="#{books.page(${page.number + 1}, ${page.totalPages})}">Page 1 of 2</span>
         <a class="btn btn-outline-secondary btn-sm"
            th:classappend="${!page.hasNext()} ? 'disabled'"
-           th:href="@{/books(q=${q}, sort=${sort}, page=${page.number + 1})}"
+           th:href="@{/books(q=${q}, genre=${genre}, sort=${sort}, page=${page.number + 1})}"
            th:text="#{books.next}">Next</a>
     </nav>
 </div>

@@ -6,6 +6,7 @@ import com.epam.rd.autocode.spring.project.exception.BookInUseException;
 import com.epam.rd.autocode.spring.project.exception.NotFoundException;
 import com.epam.rd.autocode.spring.project.model.Book;
 import com.epam.rd.autocode.spring.project.model.enums.AgeGroup;
+import com.epam.rd.autocode.spring.project.model.enums.Genre;
 import com.epam.rd.autocode.spring.project.model.enums.Language;
 import com.epam.rd.autocode.spring.project.repo.BookRepository;
 import com.epam.rd.autocode.spring.project.repo.OrderRepository;
@@ -52,7 +53,7 @@ class BookServiceImplTest {
         Book book = new Book();
         book.setId(1L);
         book.setName(name);
-        book.setGenre("Fantasy");
+        book.setGenre(Genre.FANTASY);
         book.setAgeGroup(AgeGroup.ADULT);
         book.setPrice(new BigDecimal(price));
         book.setPublicationDate(LocalDate.of(2020, 1, 1));
@@ -65,7 +66,7 @@ class BookServiceImplTest {
     private static BookDTO bookDto(String name, String price) {
         BookDTO dto = new BookDTO();
         dto.setName(name);
-        dto.setGenre("Fantasy");
+        dto.setGenre(Genre.FANTASY);
         dto.setAgeGroup(AgeGroup.ADULT);
         dto.setPrice(new BigDecimal(price));
         dto.setPublicationDate(LocalDate.of(2020, 1, 1));
@@ -206,14 +207,26 @@ class BookServiceImplTest {
     }
 
     @Test
-    void searchBooks_mapsPage() {
+    void searchBooks_withoutGenre_mapsPage() {
         Pageable pageable = PageRequest.of(0, 5);
-        when(bookRepository.search("du", pageable))
+        // a null genre means "any genre"
+        when(bookRepository.search("du", null, pageable))
                 .thenReturn(new PageImpl<>(List.of(book("Dune", "10.00")), pageable, 1));
 
-        Page<BookDTO> result = bookService.searchBooks("du", pageable);
+        Page<BookDTO> result = bookService.searchBooks("du", null, pageable);
 
         assertThat(result.getTotalElements()).isEqualTo(1);
         assertThat(result.getContent()).extracting(BookDTO::getName).containsExactly("Dune");
+    }
+
+    @Test
+    void searchBooks_withGenre_passesGenreToRepositoryAndMapsIt() {
+        Pageable pageable = PageRequest.of(0, 5);
+        when(bookRepository.search("du", Genre.FANTASY, pageable))
+                .thenReturn(new PageImpl<>(List.of(book("Dune", "10.00")), pageable, 1));
+
+        Page<BookDTO> result = bookService.searchBooks("du", Genre.FANTASY, pageable);
+
+        assertThat(result.getContent()).extracting(BookDTO::getGenre).containsExactly(Genre.FANTASY);
     }
 }

@@ -1,6 +1,7 @@
 package com.epam.rd.autocode.spring.project.dto;
 
 import com.epam.rd.autocode.spring.project.model.enums.AgeGroup;
+import com.epam.rd.autocode.spring.project.model.enums.Genre;
 import com.epam.rd.autocode.spring.project.model.enums.Language;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
@@ -31,9 +32,8 @@ public class BookDTO {
     @Size(max = 255, message = "{validation.size.max}")
     private String name;
 
-    @NotBlank(message = "{validation.book.genre.notblank}")
-    @Size(max = 255, message = "{validation.size.max}")
-    private String genre;
+    @NotNull(message = "{validation.book.genre.notnull}")
+    private Genre genre;
 
     @NotNull(message = "{validation.book.agegroup.notnull}")
     private AgeGroup ageGroup;

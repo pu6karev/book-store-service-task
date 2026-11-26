@@ -12,7 +12,7 @@
         <dt class="col-sm-4" th:text="#{book.author}">Author</dt>
         <dd class="col-sm-8" th:text="${book.author}"></dd>
         <dt class="col-sm-4" th:text="#{book.genre}">Genre</dt>
-        <dd class="col-sm-8" th:text="${book.genre}"></dd>
+        <dd class="col-sm-8" th:text="${book.genre?.displayName}"></dd>
         <dt class="col-sm-4" th:text="#{book.agegroup}">Age group</dt>
         <dd class="col-sm-8" th:text="${book.ageGroup}"></dd>
         <dt class="col-sm-4" th:text="#{book.language}">Language</dt>

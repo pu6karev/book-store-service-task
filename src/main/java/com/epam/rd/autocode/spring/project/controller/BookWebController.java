@@ -4,6 +4,7 @@ import com.epam.rd.autocode.spring.project.dto.BookDTO;
 import com.epam.rd.autocode.spring.project.exception.AlreadyExistException;
 import com.epam.rd.autocode.spring.project.exception.BookInUseException;
 import com.epam.rd.autocode.spring.project.model.enums.AgeGroup;
+import com.epam.rd.autocode.spring.project.model.enums.Genre;
 import com.epam.rd.autocode.spring.project.model.enums.Language;
 import com.epam.rd.autocode.spring.project.service.BookService;
 import jakarta.validation.Valid;
@@ -43,13 +44,20 @@ public class BookWebController {
         return Language.values();
     }
 
+    @ModelAttribute("genres")
+    public Genre[] genres() {
+        return Genre.values();
+    }
+
     @GetMapping
     public String list(@RequestParam(defaultValue = "") String q,
+                       @RequestParam(required = false) Genre genre,
                        @PageableDefault(size = 5, sort = "name") Pageable pageable,
                        Model model) {
         Sort.Order order = pageable.getSort().stream().findFirst().orElse(Sort.Order.asc("name"));
-        model.addAttribute("page", bookService.searchBooks(q, pageable));
+        model.addAttribute("page", bookService.searchBooks(q, genre, pageable));
         model.addAttribute("q", q);
+        model.addAttribute("genre", genre);
         model.addAttribute("sort", order.getProperty() + "," + order.getDirection().name().toLowerCase());
         return "books/list";
     }

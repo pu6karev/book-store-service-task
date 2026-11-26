@@ -6,6 +6,7 @@ import com.epam.rd.autocode.spring.project.dto.BookDTO;
 import com.epam.rd.autocode.spring.project.dto.ClientDTO;
 import com.epam.rd.autocode.spring.project.dto.EmployeeDTO;
 import com.epam.rd.autocode.spring.project.model.enums.AgeGroup;
+import com.epam.rd.autocode.spring.project.model.enums.Genre;
 import com.epam.rd.autocode.spring.project.model.enums.Language;
 import com.epam.rd.autocode.spring.project.service.BookService;
 import com.epam.rd.autocode.spring.project.service.ClientService;
@@ -67,7 +68,7 @@ public abstract class AbstractWebMvcTest {
     protected static BookDTO sampleBook(String name) {
         BookDTO book = new BookDTO();
         book.setName(name);
-        book.setGenre("Sci-Fi");
+        book.setGenre(Genre.SCIENCE_FICTION);
         book.setAgeGroup(AgeGroup.ADULT);
         book.setPrice(new BigDecimal("29.99"));
         book.setPublicationDate(LocalDate.of(1965, 8, 1));

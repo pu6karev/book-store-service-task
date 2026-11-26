@@ -123,7 +123,7 @@ public class BookModelTest {
     @CsvSource({
             "java.lang.Long, id, 1",
             "java.lang.String, name, 1",
-            "java.lang.String, genre, 1",
+            "com.epam.rd.autocode.spring.project.model.enums.Genre, genre, 1",
             "com.epam.rd.autocode.spring.project.model.enums.AgeGroup, ageGroup, 1",
             "java.math.BigDecimal, price, 1",
             "java.time.LocalDate, publicationDate, 1",

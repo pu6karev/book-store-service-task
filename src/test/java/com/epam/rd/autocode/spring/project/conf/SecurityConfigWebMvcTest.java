@@ -37,7 +37,7 @@ class SecurityConfigWebMvcTest extends AbstractWebMvcTest {
     @BeforeEach
     void setUpMocks() {
         // minimal non-null data so that the Thymeleaf pages render on the "200 OK" checks
-        when(bookService.searchBooks(anyString(), any()))
+        when(bookService.searchBooks(anyString(), any(), any()))
                 .thenReturn(new PageImpl<>(List.of(), PageRequest.of(0, 5), 0));
         when(clientService.getClientByEmail(anyString())).thenReturn(sampleClient());
     }

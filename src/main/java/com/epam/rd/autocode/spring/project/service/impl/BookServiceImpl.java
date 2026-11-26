@@ -5,6 +5,7 @@ import com.epam.rd.autocode.spring.project.exception.AlreadyExistException;
 import com.epam.rd.autocode.spring.project.exception.BookInUseException;
 import com.epam.rd.autocode.spring.project.exception.NotFoundException;
 import com.epam.rd.autocode.spring.project.model.Book;
+import com.epam.rd.autocode.spring.project.model.enums.Genre;
 import com.epam.rd.autocode.spring.project.repo.BookRepository;
 import com.epam.rd.autocode.spring.project.repo.OrderRepository;
 import com.epam.rd.autocode.spring.project.service.BookService;
@@ -89,9 +90,9 @@ public class BookServiceImpl implements BookService {
     }
 
     @Override
-    public Page<BookDTO> searchBooks(String q, Pageable pageable) {
-        log.debug("Searching books: q='{}', {}", q, pageable);
-        return bookRepository.search(q, pageable).map(this::convertBookToBookDTO);
+    public Page<BookDTO> searchBooks(String q, Genre genre, Pageable pageable) {
+        log.debug("Searching books: q='{}', genre={}, {}", q, genre, pageable);
+        return bookRepository.search(q, genre, pageable).map(this::convertBookToBookDTO);
     }
 
     private BookDTO convertBookToBookDTO(Book book) {

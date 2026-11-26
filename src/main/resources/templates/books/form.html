@@ -23,7 +23,10 @@
         </div>
         <div class="mb-3">
             <label class="form-label" for="genre" th:text="#{book.genre}">Genre</label>
-            <input type="text" class="form-control" th:field="*{genre}" th:errorclass="is-invalid">
+            <select class="form-select" th:field="*{genre}" th:errorclass="is-invalid">
+                <option value="">—</option>
+                <option th:each="g : ${genres}" th:value="${g}" th:text="${g.displayName}"></option>
+            </select>
             <div class="invalid-feedback" th:errors="*{genre}"></div>
         </div>
         <div class="mb-3">

@@ -1,6 +1,7 @@
 package com.epam.rd.autocode.spring.project.model;
 
 import com.epam.rd.autocode.spring.project.model.enums.AgeGroup;
+import com.epam.rd.autocode.spring.project.model.enums.Genre;
 import com.epam.rd.autocode.spring.project.model.enums.Language;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -23,7 +24,8 @@ public class Book {
     private Long id;
     @Column(nullable = false, unique = true)
     private String name;
-    private String genre;
+    @Convert(converter = GenreConverter.class)
+    private Genre genre;
 
     @Enumerated(EnumType.STRING)
     private AgeGroup ageGroup;

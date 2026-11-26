@@ -1,6 +1,7 @@
 package com.epam.rd.autocode.spring.project.service;
 
 import com.epam.rd.autocode.spring.project.dto.BookDTO;
+import com.epam.rd.autocode.spring.project.model.enums.Genre;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
@@ -18,5 +19,5 @@ public interface BookService {
 
     BookDTO addBook(BookDTO book);
 
-    Page<BookDTO> searchBooks(String q, Pageable pageable);
+    Page<BookDTO> searchBooks(String q, Genre genre, Pageable pageable);
 }
